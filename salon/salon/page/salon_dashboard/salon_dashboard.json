@@ -1,0 +1,8 @@
+{
+ "doctype": "Page",
+ "name": "salon-dashboard",
+ "module": "Salon",
+ "title": "Salon Dashboard",
+ "page_name": "salon-dashboard",
+ "standard": "Yes"
+}

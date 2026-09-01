@@ -1,0 +1,8 @@
+{
+ "doctype": "Page",
+ "name": "salon-calendar",
+ "module": "Salon",
+ "title": "Salon Calendar",
+ "page_name": "salon-calendar",
+ "standard": "Yes"
+}

@@ -1,0 +1,16 @@
+{
+ "doctype": "DocType",
+ "name": "Booking Service",
+ "module": "Salon",
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["item", "qty", "duration_minutes", "rate", "amount"],
+ "fields": [
+  {"fieldname": "item", "label": "Service", "fieldtype": "Link", "options": "Item", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "qty", "label": "Qty", "fieldtype": "Float", "default": 1, "in_list_view": 1},
+  {"fieldname": "duration_minutes", "label": "Duration (min)", "fieldtype": "Int", "default": 30, "in_list_view": 1},
+  {"fieldname": "rate", "label": "Rate", "fieldtype": "Currency", "in_list_view": 1},
+  {"fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "read_only": 1, "in_list_view": 1}
+ ]
+}

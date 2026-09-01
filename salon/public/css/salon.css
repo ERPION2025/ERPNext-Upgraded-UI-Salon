@@ -1,0 +1,417 @@
+.salon-shell {
+	display: flex;
+	min-height: calc(100vh - 60px);
+}
+.salon-sidebar {
+	width: 220px;
+	background: #ffffff;
+	border-right: 1px solid #e5e5e5;
+	padding: 24px 16px;
+	flex-shrink: 0;
+	overflow-y: auto;
+}
+.salon-brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 500;
+	font-size: 15px;
+	margin-bottom: 24px;
+	color: #1a1a1a;
+}
+.salon-brand-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #e4002b;
+}
+.salon-nav-group {
+	margin-bottom: 18px;
+}
+.salon-nav-group:last-child {
+	margin-bottom: 0;
+}
+.salon-nav-group-title {
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #b3b3b3;
+	font-weight: 600;
+	padding: 0 10px 6px;
+}
+.salon-sidebar nav {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.salon-sidebar nav a {
+	padding: 8px 10px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #4a4a4a;
+	text-decoration: none;
+}
+.salon-sidebar nav a:hover {
+	background: #f5f5f5;
+}
+.salon-sidebar nav a.active {
+	background: #fdeaee;
+	color: #e4002b;
+	font-weight: 500;
+}
+.salon-main {
+	flex: 1;
+	padding: 32px 40px;
+	background: #fafafa;
+}
+.salon-header h1 {
+	font-size: 22px;
+	font-weight: 500;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-header p {
+	font-size: 13px;
+	color: #8a8a8a;
+	margin: 0 0 24px;
+}
+.salon-kpis {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 16px;
+	margin-bottom: 32px;
+}
+.salon-card {
+	background: #ffffff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 18px;
+}
+.salon-card-value {
+	font-size: 26px;
+	font-weight: 500;
+	color: #1a1a1a;
+}
+.salon-card-label {
+	font-size: 12px;
+	color: #8a8a8a;
+	margin-top: 4px;
+}
+.salon-schedule h2 {
+	font-size: 16px;
+	font-weight: 500;
+	margin-bottom: 12px;
+	color: #1a1a1a;
+}
+.salon-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	overflow: hidden;
+}
+.salon-table th {
+	text-align: left;
+	font-size: 11px;
+	color: #8a8a8a;
+	padding: 10px 14px;
+	border-bottom: 1px solid #eee;
+}
+.salon-table td {
+	padding: 10px 14px;
+	font-size: 13px;
+	border-bottom: 1px solid #f5f5f5;
+	color: #333;
+}
+.salon-status {
+	padding: 2px 8px;
+	border-radius: 12px;
+	font-size: 11px;
+}
+.salon-status-completed {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+.salon-status-confirmed {
+	background: #fdeaee;
+	color: #e4002b;
+}
+.salon-status-checked-in {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+.salon-status-no-show {
+	background: #f5f5f5;
+	color: #757575;
+}
+
+.salon-schedule-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.salon-schedule-head h2 {
+	margin-bottom: 0;
+}
+.salon-schedule-head a {
+	font-size: 12px;
+	color: #e4002b;
+	text-decoration: none;
+	font-weight: 500;
+}
+.salon-schedule-head a:hover {
+	text-decoration: underline;
+}
+
+/* Booking Calendar */
+.salon-cal-main {
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - 60px);
+	padding: 24px 32px;
+	box-sizing: border-box;
+}
+.salon-cal-toolbar {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.salon-cal-title h1 {
+	font-size: 20px;
+	font-weight: 500;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-cal-title p {
+	font-size: 12px;
+	color: #8a8a8a;
+	margin: 0;
+}
+.salon-cal-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.salon-cal-controls .form-control {
+	height: 30px;
+	font-size: 13px;
+	padding: 2px 8px;
+}
+.salon-cal-date,
+.salon-cal-branch {
+	width: 150px;
+}
+.salon-cal-new {
+	background: #e4002b;
+	border-color: #e4002b;
+}
+.salon-cal-new:hover {
+	background: #c40025;
+	border-color: #c40025;
+}
+
+.salon-cal-grid-wrap {
+	flex: 1;
+	overflow: auto;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	position: relative;
+}
+.cal-grid {
+	display: flex;
+	flex-direction: column;
+	min-width: 100%;
+	width: max-content;
+}
+.cal-header-row {
+	display: flex;
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: #fff;
+	border-bottom: 1px solid #eee;
+}
+.cal-time-corner {
+	width: 56px;
+	flex-shrink: 0;
+	border-right: 1px solid #f0f0f0;
+}
+.cal-columns-header {
+	display: flex;
+}
+.cal-col-header {
+	width: 170px;
+	flex-shrink: 0;
+	padding: 10px 12px;
+	border-right: 1px solid #f5f5f5;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.cal-col-avatar {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: #fdeaee;
+	color: #e4002b;
+	font-size: 11px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.cal-col-name {
+	font-size: 12px;
+	font-weight: 500;
+	color: #1a1a1a;
+	white-space: nowrap;
+}
+.cal-empty-msg {
+	padding: 40px;
+	color: #8a8a8a;
+	font-size: 13px;
+}
+
+.cal-body-row {
+	display: flex;
+	position: relative;
+}
+.cal-time-labels {
+	width: 56px;
+	flex-shrink: 0;
+	position: relative;
+	border-right: 1px solid #f0f0f0;
+}
+.cal-time-label {
+	position: absolute;
+	left: 0;
+	right: 0;
+	transform: translateY(-6px);
+	font-size: 10px;
+	color: #b3b3b3;
+	text-align: right;
+	padding-right: 6px;
+	box-sizing: border-box;
+}
+.cal-columns-body {
+	display: flex;
+	position: relative;
+}
+.cal-column-body {
+	width: 170px;
+	flex-shrink: 0;
+	position: relative;
+	border-right: 1px solid #f5f5f5;
+	background-image: repeating-linear-gradient(
+		to bottom,
+		#f5f5f5 0,
+		#f5f5f5 1px,
+		transparent 1px,
+		transparent 100%
+	);
+	cursor: pointer;
+}
+
+.cal-now-line {
+	position: absolute;
+	left: 56px;
+	right: 0;
+	height: 0;
+	border-top: 2px solid #e4002b;
+	z-index: 2;
+	pointer-events: none;
+}
+.cal-now-line::before {
+	content: '';
+	position: absolute;
+	left: -5px;
+	top: -4px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #e4002b;
+}
+
+.cal-booking {
+	position: absolute;
+	left: 4px;
+	right: 4px;
+	border-radius: 6px;
+	padding: 4px 8px;
+	overflow: hidden;
+	cursor: grab;
+	border-left: 3px solid;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.cal-booking.dragging {
+	cursor: grabbing;
+	opacity: 0.85;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+	z-index: 5;
+}
+.cal-booking.locked {
+	cursor: pointer;
+}
+.cal-booking-time {
+	font-size: 10px;
+	font-weight: 600;
+	opacity: 0.8;
+}
+.cal-booking-client {
+	font-size: 12px;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.cal-booking-service {
+	font-size: 11px;
+	opacity: 0.75;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cal-booking.status-tentative {
+	background: #f5f5f5;
+	border-left-color: #b3b3b3;
+	color: #5a5a5a;
+}
+.cal-booking.status-confirmed {
+	background: #fdeaee;
+	border-left-color: #e4002b;
+	color: #c40025;
+}
+.cal-booking.status-checked-in {
+	background: #e8f5e9;
+	border-left-color: #2e7d32;
+	color: #1e6b26;
+}
+.cal-booking.status-completed {
+	background: #ececeb;
+	border-left-color: #1a1a1a;
+	color: #1a1a1a;
+}
+.cal-booking.status-no-show {
+	background: #f5f5f5;
+	border-left-color: #9e9e9e;
+	color: #757575;
+	text-decoration: line-through;
+}
+.cal-booking.status-cancelled {
+	background: #fafafa;
+	border-left-color: #e0e0e0;
+	color: #b3b3b3;
+	text-decoration: line-through;
+}
+
+body.salon-cal-dragging {
+	user-select: none;
+}

@@ -11,12 +11,13 @@ frappe.pages['salon-dashboard'].on_page_load = function (wrapper) {
 class SalonDashboard {
 	constructor(page) {
 		this.page = page;
+		this.body = page.body.get(0);
 		this.render_shell();
 		this.load_data();
 	}
 
 	render_shell() {
-		this.page.body.innerHTML = `
+		this.body.innerHTML = `
 			<div class="salon-shell">
 				${salon_common.render_sidebar_html('dashboard')}
 				<main class="salon-main">

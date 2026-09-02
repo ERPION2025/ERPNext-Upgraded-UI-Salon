@@ -11,6 +11,7 @@ frappe.pages['salon-calendar'].on_page_load = function (wrapper) {
 class SalonCalendar {
 	constructor(page) {
 		this.page = page;
+		this.body = page.body.get(0);
 		this.date = frappe.datetime.get_today();
 		this.cost_center = null;
 		this.GRID_START_HOUR = 8;
@@ -30,7 +31,7 @@ class SalonCalendar {
 	}
 
 	render_shell() {
-		this.page.body.innerHTML = `
+		this.body.innerHTML = `
 			<div class="salon-shell">
 				${salon_common.render_sidebar_html('calendar')}
 				<main class="salon-main salon-cal-main">
@@ -67,12 +68,12 @@ class SalonCalendar {
 			</div>
 		`;
 
-		this.$date_input = this.page.body.querySelector('.salon-cal-date');
-		this.$branch_select = this.page.body.querySelector('.salon-cal-branch');
-		this.$time_labels = this.page.body.querySelector('.cal-time-labels');
-		this.$columns_header = this.page.body.querySelector('.cal-columns-header');
-		this.$columns_body = this.page.body.querySelector('.cal-columns-body');
-		this.$now_line = this.page.body.querySelector('.cal-now-line');
+		this.$date_input = this.body.querySelector('.salon-cal-date');
+		this.$branch_select = this.body.querySelector('.salon-cal-branch');
+		this.$time_labels = this.body.querySelector('.cal-time-labels');
+		this.$columns_header = this.body.querySelector('.cal-columns-header');
+		this.$columns_body = this.body.querySelector('.cal-columns-body');
+		this.$now_line = this.body.querySelector('.cal-now-line');
 
 		this.$date_input.value = this.date;
 	}
@@ -83,7 +84,7 @@ class SalonCalendar {
 			this.load_data();
 		});
 
-		this.page.body.querySelectorAll('[data-nav]').forEach((btn) => {
+		this.body.querySelectorAll('[data-nav]').forEach((btn) => {
 			btn.addEventListener('click', () => {
 				const nav = btn.dataset.nav;
 				if (nav === 'today') {
@@ -103,7 +104,7 @@ class SalonCalendar {
 			this.load_data();
 		});
 
-		this.page.body.querySelector('.salon-cal-new').addEventListener('click', () => {
+		this.body.querySelector('.salon-cal-new').addEventListener('click', () => {
 			this.open_quick_dialog({});
 		});
 	}

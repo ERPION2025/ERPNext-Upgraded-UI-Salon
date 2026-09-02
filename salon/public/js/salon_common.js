@@ -20,7 +20,14 @@ window.salon_common = {
 		{
 			title: 'Accounts — ERPNext',
 			items: [
-				{ key: 'pos', label: 'POS & Invoicing', href: '/app/sales-invoice' },
+				{
+					key: 'pos',
+					label: 'POS & Invoicing',
+					// Admins manage invoices directly; everyone else (cashiers,
+					// branch staff on a POS Profile) goes straight to the POS
+					// register instead of the raw Sales Invoice list.
+					href: () => (frappe.user.has_role('System Manager') ? '/app/sales-invoice' : '/app/point-of-sale'),
+				},
 				{ key: 'gl', label: 'GL Postings', href: '/app/gl-entry' },
 			],
 		},
@@ -47,7 +54,8 @@ window.salon_common = {
 				const links = group.items
 					.map((item) => {
 						const cls = item.key === active_key ? 'active' : '';
-						return `<a class="${cls}" href="${item.href}">${item.label}</a>`;
+						const href = typeof item.href === 'function' ? item.href() : item.href;
+						return `<a class="${cls}" href="${href}">${item.label}</a>`;
 					})
 					.join('');
 				return `

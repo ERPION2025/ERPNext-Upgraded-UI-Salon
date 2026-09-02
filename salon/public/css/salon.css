@@ -64,6 +64,13 @@
 	padding: 32px 40px;
 	background: #fafafa;
 }
+.salon-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
 .salon-header h1 {
 	font-size: 22px;
 	font-weight: 500;
@@ -74,6 +81,29 @@
 	font-size: 13px;
 	color: #8a8a8a;
 	margin: 0 0 24px;
+}
+.salon-branch-filter select {
+	height: 32px;
+	font-size: 13px;
+	min-width: 160px;
+}
+.salon-branch-locked {
+	display: inline-block;
+	padding: 6px 12px;
+	background: #f5f5f5;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #4a4a4a;
+}
+.salon-store-sales {
+	margin-bottom: 32px;
+}
+.salon-store-sales h2 {
+	font-size: 16px;
+	font-weight: 500;
+	margin-bottom: 12px;
+	color: #1a1a1a;
 }
 .salon-kpis {
 	display: grid;
@@ -344,11 +374,12 @@
 	left: 4px;
 	right: 4px;
 	border-radius: 6px;
-	padding: 4px 8px;
+	padding: 3px 8px;
 	overflow: hidden;
 	cursor: grab;
 	border-left: 3px solid;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+	line-height: 1.25;
 }
 .cal-booking.dragging {
 	cursor: grabbing;
@@ -372,11 +403,14 @@
 	text-overflow: ellipsis;
 }
 .cal-booking-service {
-	font-size: 11px;
+	font-size: 10px;
 	opacity: 0.75;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+.cal-booking-item {
+	border-bottom: 1px dotted currentColor;
+	cursor: help;
 }
 
 .cal-booking.status-tentative {

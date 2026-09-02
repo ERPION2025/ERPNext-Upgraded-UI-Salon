@@ -20,6 +20,16 @@ app_include_js = "/assets/salon/js/salon_common.js"
 # auto-generated Workspace instead of our custom Dashboard.
 app_home = "/app/salon-dashboard"
 
+# Store/branch isolation: non-System Manager users (POS Profile cashiers,
+# stylists) only ever see Salon Bookings for their own Cost Center, in the
+# native list view/reports as well as our custom Dashboard/Calendar pages.
+permission_query_conditions = {
+	"Salon Booking": "salon.salon.permissions.get_permission_query_conditions",
+}
+has_permission = {
+	"Salon Booking": "salon.salon.permissions.has_permission",
+}
+
 # Fixtures
 # --------
 # Uncomment and list export fixtures here if you later add custom Salary

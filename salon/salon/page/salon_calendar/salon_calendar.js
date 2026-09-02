@@ -20,9 +20,10 @@ class SalonCalendar {
 		this.SNAP_MIN = 15;
 		this.LOCKED_STATUSES = ['Completed', 'Cancelled', 'No-Show'];
 
+		this.scope_resolved = false;
+
 		this.render_shell();
 		this.wire_toolbar();
-		this.load_branches();
 		this.load_data();
 	}
 
@@ -121,6 +122,20 @@ class SalonCalendar {
 		});
 	}
 
+	setup_branch_filter() {
+		if (this.is_admin) {
+			this.load_branches();
+			return;
+		}
+		// Cashiers / branch staff are locked to their own store — the
+		// server already ignores any cost_center they pass, so don't
+		// offer a picker that would silently do nothing.
+		this.cost_center = this.user_cost_center;
+		this.$branch_select.outerHTML = `<span class="salon-branch-locked">${frappe.utils.escape_html(
+			this.user_cost_center || __('No store assigned')
+		)}</span>`;
+	}
+
 	load_data() {
 		const start = `${this.date} 00:00:00`;
 		const next_day = new Date(this.date + 'T00:00:00');
@@ -131,8 +146,17 @@ class SalonCalendar {
 			method: 'salon.api.get_calendar_data',
 			args: { start, end, cost_center: this.cost_center },
 		}).then((r) => {
-			this.stylists = (r.message && r.message.stylists) || [];
-			this.bookings = (r.message && r.message.bookings) || [];
+			const msg = r.message || {};
+			this.stylists = msg.stylists || [];
+			this.bookings = msg.bookings || [];
+
+			if (!this.scope_resolved) {
+				this.scope_resolved = true;
+				this.is_admin = msg.is_admin;
+				this.user_cost_center = msg.user_cost_center;
+				this.setup_branch_filter();
+			}
+
 			this.render_time_labels();
 			this.render_columns();
 			this.render_bookings();
@@ -204,20 +228,32 @@ class SalonCalendar {
 			const start_min = this.datetime_to_minutes(b.booking_datetime);
 			const end_min = b.end_datetime ? this.datetime_to_minutes(b.end_datetime) : start_min + 30;
 			const top = Math.max(0, start_min) * this.PX_PER_MIN;
-			const height = Math.max(20, (end_min - start_min) * this.PX_PER_MIN - 2);
+			const height = Math.max(44, (end_min - start_min) * this.PX_PER_MIN - 2);
 			const status_class = (b.status || '').toLowerCase().replace(/\s+/g, '-');
 			const locked = this.LOCKED_STATUSES.includes(b.status);
+			const services = b.services || [];
+
+			const service_html = services
+				.map(
+					(s) =>
+						`<span class="cal-booking-item" title="${frappe.utils.escape_html(
+							s.item_name || s.item
+						)}">${frappe.utils.escape_html(s.item)}</span>`
+				)
+				.join(', ');
+			const card_title = `${this.format_time(b.booking_datetime)}–${this.format_time(
+				b.end_datetime || b.booking_datetime
+			)} · ${b.customer || ''} · ${services.map((s) => s.item_name || s.item).join(', ')}`;
 
 			const el = document.createElement('div');
 			el.className = `cal-booking status-${status_class}${locked ? ' locked' : ''}`;
 			el.style.top = top + 'px';
 			el.style.height = height + 'px';
+			el.title = card_title;
 			el.innerHTML = `
 				<div class="cal-booking-time">${this.format_time(b.booking_datetime)}</div>
 				<div class="cal-booking-client">${frappe.utils.escape_html(b.customer || '')}</div>
-				<div class="cal-booking-service">${frappe.utils.escape_html(
-					(b.services || []).map((s) => s.item).join(', ')
-				)}</div>
+				<div class="cal-booking-service">${service_html}</div>
 			`;
 			this.bind_drag(el, b, locked);
 			col.appendChild(el);

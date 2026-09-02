@@ -1,6 +1,7 @@
 .salon-shell {
 	display: flex;
-	min-height: calc(100vh - 60px);
+	height: calc(100vh - 60px);
+	overflow: hidden;
 }
 .salon-sidebar {
 	width: 220px;
@@ -8,6 +9,7 @@
 	border-right: 1px solid #e5e5e5;
 	padding: 24px 16px;
 	flex-shrink: 0;
+	height: 100%;
 	overflow-y: auto;
 }
 .salon-brand {
@@ -61,8 +63,12 @@
 }
 .salon-main {
 	flex: 1;
+	min-width: 0;
+	height: 100%;
 	padding: 32px 40px;
 	background: #fafafa;
+	overflow-y: auto;
+	box-sizing: border-box;
 }
 .salon-header {
 	display: flex;
@@ -199,9 +205,8 @@
 .salon-cal-main {
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - 60px);
+	overflow: hidden;
 	padding: 24px 32px;
-	box-sizing: border-box;
 }
 .salon-cal-toolbar {
 	display: flex;
@@ -257,7 +262,6 @@
 	display: flex;
 	flex-direction: column;
 	min-width: 100%;
-	width: max-content;
 }
 .cal-header-row {
 	display: flex;
@@ -274,10 +278,11 @@
 }
 .cal-columns-header {
 	display: flex;
+	flex: 1;
 }
 .cal-col-header {
-	width: 170px;
-	flex-shrink: 0;
+	flex: 1 1 170px;
+	min-width: 170px;
 	padding: 10px 12px;
 	border-right: 1px solid #f5f5f5;
 	display: flex;
@@ -332,11 +337,12 @@
 }
 .cal-columns-body {
 	display: flex;
+	flex: 1;
 	position: relative;
 }
 .cal-column-body {
-	width: 170px;
-	flex-shrink: 0;
+	flex: 1 1 170px;
+	min-width: 170px;
 	position: relative;
 	border-right: 1px solid #f5f5f5;
 	background-image: repeating-linear-gradient(

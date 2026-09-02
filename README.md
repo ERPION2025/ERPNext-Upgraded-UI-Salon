@@ -5,19 +5,33 @@ built as an installable Frappe app (module `Salon`, app name `salon`).
 
 Covers:
 
-- **Salon Booking** — client + stylist + services, auto totals, and on
-  completion: creates a Sales Invoice (or redeems a Package Subscription),
-  a Stock Entry for any consumables from a matching Salon Service Recipe,
-  and an Additional Salary commission entry for the stylist.
+- **Salon Booking** — client + stylist + services, auto totals. On
+  completion (status → Completed) it hands off to POS rather than
+  billing anything itself: it creates a *draft* POS-flagged Sales
+  Invoice (or redeems a Package Subscription) for the branch's POS
+  Profile, and a Stock Entry for any consumables from a matching Salon
+  Service Recipe. Revenue and the stylist's commission (Additional
+  Salary, `Service Commission` component) only get created once a
+  cashier actually submits that invoice in POS — see
+  `salon/salon/events.py`.
 - **Salon Stylist** — one per Employee, with commission % and branch
   (Cost Center).
 - **Salon Service Recipe** / **Recipe Consumable** — raw materials a
   service consumes, for automatic stock deduction.
 - **Package Subscription** — prepaid session packages redeemed by bookings.
-- **Salon Dashboard** (`/app/salon-dashboard`) — a custom KPI + live
-  schedule page. Every other sidebar link (Bookings, Clients, Packages,
-  Services, Stylists, Stock, Invoicing) points at the native Desk list
-  view for that doctype.
+- **Salon Dashboard** (`/app/salon-dashboard`) and **Salon Calendar**
+  (`/app/salon-calendar`) — custom pages with live KPIs (including a
+  store-wise sales breakdown) and a drag-to-reschedule time grid. Every
+  other sidebar link (Bookings, Clients, Packages, Services, Stylists,
+  Stock) points at the native Desk list view for that doctype; POS &
+  Invoicing routes System Managers to the Sales Invoice list and
+  everyone else straight into the POS register.
+- **Store-scoped permissions** (`salon/salon/permissions.py`) — System
+  Managers see every branch; everyone else (cashiers, stylists) only
+  ever sees their own branch's bookings, both in the custom
+  Dashboard/Calendar and in the native Salon Booking list/reports. A
+  user's branch is resolved from their assigned POS Profile, falling
+  back to their Salon Stylist record.
 
 ## Requirements
 
@@ -57,10 +71,22 @@ bench restart
 
 - A **Salary Component** named exactly `Service Commission`
   (Payroll > Salary Component) — the commission automation posts to this.
+- A **Salary Structure** that includes `Service Commission`, with a
+  **Salary Structure Assignment** for every stylist Employee — required
+  by Frappe HR before any Additional Salary can be created for them.
 - A **Salon Stylist** record per Employee, with `commission_rate` and
   `cost_center` set.
 - A **Cost Center** per branch, and a **Warehouse** per branch if you
   want stock deduction working.
+- A **POS Profile** per branch, with its `Cost Center` set to that
+  branch's Cost Center and at least one payment method configured.
+  This is what a completed booking's draft invoice is billed through,
+  and what a non-admin user's branch access is resolved from (via
+  *POS Profile → Applicable for Users*).
+- Before any booking can be completed for a branch, that branch's POS
+  Profile needs an **open POS Opening Entry** (POS > New, the normal
+  daily "open the till" step a cashier does) — Frappe itself requires
+  this before it will accept a POS-flagged invoice.
 - Optional: a **Salon Service Recipe** per service Item, listing the raw
   materials it consumes — only services with a recipe generate a Stock
   Entry on completion.

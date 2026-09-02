@@ -30,6 +30,17 @@ has_permission = {
 	"Salon Booking": "salon.salon.permissions.has_permission",
 }
 
+# Revenue and stylist commission are driven off real POS activity, not
+# booking status: a completed booking hands off a draft POS invoice, and
+# only submitting THAT (i.e. a cashier actually taking payment) creates the
+# commission entry. See Salon Booking.create_draft_invoice() and
+# salon/salon/events.py.
+doc_events = {
+	"Sales Invoice": {
+		"on_submit": "salon.salon.events.on_sales_invoice_submit",
+	},
+}
+
 # Fixtures
 # --------
 # Uncomment and list export fixtures here if you later add custom Salary

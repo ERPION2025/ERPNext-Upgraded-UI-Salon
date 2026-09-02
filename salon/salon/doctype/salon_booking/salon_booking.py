@@ -58,8 +58,11 @@ class SalonBooking(Document):
 
 	def on_update(self):
 		# Fire the completion automation exactly once, the moment status
-		# flips to Completed. Everything downstream — invoice, stock,
-		# commission — is native ERPNext from here.
+		# flips to Completed. Stock consumption happens right away (the
+		# service was physically performed); revenue and commission do
+		# NOT happen here anymore — they only land once a cashier actually
+		# submits the POS invoice this booking is handed off to. See
+		# create_draft_invoice() and salon/salon/events.py.
 		if self.status == "Completed" and not self.sales_invoice:
 			self.complete_booking()
 
@@ -67,33 +70,55 @@ class SalonBooking(Document):
 		if self.package_subscription:
 			self.redeem_package()
 		else:
-			self.create_invoice()
+			self.create_draft_invoice()
 
 		self.create_stock_entry()
-		self.create_commission_entry()
 
 		# db_set to avoid re-triggering validate/on_update recursively
 		self.db_set("sales_invoice", self.sales_invoice)
 		self.db_set("stock_entry", self.stock_entry)
-		self.db_set("additional_salary", self.additional_salary)
 
-	def create_invoice(self):
+	def create_draft_invoice(self):
+		from salon.salon.permissions import get_pos_profile_for_cost_center
+
 		stylist = frappe.get_doc("Salon Stylist", self.salon_stylist)
 		cost_center = self.cost_center or stylist.cost_center
+		pos_profile_name = get_pos_profile_for_cost_center(cost_center)
+		if not pos_profile_name:
+			frappe.throw(
+				_(
+					"No POS Profile is set up for {0}. Create one (POS Profile > Cost Center = "
+					"{0}) before completing bookings for this branch."
+				).format(cost_center)
+			)
+
+		pos_profile = frappe.get_cached_doc("POS Profile", pos_profile_name)
 
 		si = frappe.new_doc("Sales Invoice")
 		si.customer = self.customer
 		si.due_date = nowdate()
+		si.company = pos_profile.company
+		si.currency = frappe.get_cached_value("Company", pos_profile.company, "default_currency")
 		si.cost_center = cost_center
+		si.is_pos = 1
+		si.is_created_using_pos = 1
+		si.pos_profile = pos_profile_name
+		si.set_warehouse = pos_profile.warehouse
 		for row in self.services:
 			si.append("items", {
 				"item_code": row.item,
 				"qty": row.qty,
 				"rate": row.rate,
 				"cost_center": cost_center,
+				"warehouse": pos_profile.warehouse,
 			})
+		for p in pos_profile.payments:
+			si.append("payments", {"mode_of_payment": p.mode_of_payment, "amount": 0})
 		si.insert(ignore_permissions=True)
-		si.submit()
+		# Left as a draft on purpose. It shows up under the POS register's
+		# "Draft" orders for this branch — a cashier picks it up, takes
+		# payment, and submits it there. Revenue and commission only fire
+		# once that submit happens (salon/salon/events.py), not here.
 		self.sales_invoice = si.name
 
 	def redeem_package(self):
@@ -129,24 +154,3 @@ class SalonBooking(Document):
 		se.insert(ignore_permissions=True)
 		se.submit()
 		self.stock_entry = se.name
-
-	def create_commission_entry(self):
-		stylist = frappe.get_doc("Salon Stylist", self.salon_stylist)
-		if not stylist.commission_rate:
-			return
-
-		commission = flt(self.total_amount) * flt(stylist.commission_rate) / 100
-		if not commission:
-			return
-
-		# Requires a Salary Component named "Service Commission" —
-		# create it once under Payroll > Salary Component (native, no code).
-		asal = frappe.new_doc("Additional Salary")
-		asal.employee = stylist.employee
-		asal.salary_component = "Service Commission"
-		asal.amount = commission
-		asal.payroll_date = nowdate()
-		asal.company = frappe.defaults.get_user_default("Company")
-		asal.insert(ignore_permissions=True)
-		asal.submit()
-		self.additional_salary = asal.name

@@ -71,3 +71,14 @@ def has_permission(doc, user=None, **kwargs):
 	if scope["is_admin"]:
 		return True
 	return doc.cost_center == scope["cost_center"]
+
+
+def get_pos_profile_for_cost_center(cost_center):
+	"""The POS Profile a branch's bookings get billed through. One
+	Cost Center is expected to map to exactly one POS Profile; if
+	several exist, the most recently created one wins."""
+	if not cost_center:
+		return None
+	return frappe.db.get_value(
+		"POS Profile", {"cost_center": cost_center, "disabled": 0}, "name", order_by="creation desc"
+	)

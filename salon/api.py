@@ -25,16 +25,20 @@ def get_dashboard_kpis(cost_center=None):
 		order_by="booking_datetime asc",
 	)
 
-	conditions = ["b.status = 'Completed'", "date(b.booking_datetime) = %(today)s"]
-	values = {"today": today()}
+	# Revenue reflects actual submitted invoices (Sales Invoice, the POS
+	# ones our completed bookings hand off to included) - not a booking's
+	# status. A Completed booking with nobody billing it yet at the POS
+	# contributes nothing here on purpose.
+	revenue_conditions = ["docstatus = 1", "posting_date = %(today)s"]
+	revenue_values = {"today": today()}
 	if cost_center:
-		conditions.append("b.cost_center = %(cost_center)s")
-		values["cost_center"] = cost_center
+		revenue_conditions.append("cost_center = %(cost_center)s")
+		revenue_values["cost_center"] = cost_center
 
 	revenue = frappe.db.sql(
-		f"""select coalesce(sum(b.total_amount), 0) from `tabSalon Booking` b
-		where {' and '.join(conditions)}""",
-		values,
+		f"""select coalesce(sum(grand_total), 0) from `tabSales Invoice`
+		where {' and '.join(revenue_conditions)}""",
+		revenue_values,
 	)[0][0]
 
 	commission_conditions = ["salary_component = 'Service Commission'", "date(payroll_date) = %(today)s"]
@@ -107,6 +111,25 @@ def mark_completed(booking):
 	doc.status = "Completed"
 	doc.save()
 	return doc.status
+
+
+@frappe.whitelist()
+def complete_and_bill(booking):
+	"""Mark a booking Completed and hand it off to the branch's POS
+	register. Returns the draft invoice + POS profile so the caller can
+	route the cashier straight into POS to take payment."""
+	from salon.salon.permissions import get_pos_profile_for_cost_center
+
+	doc = frappe.get_doc("Salon Booking", booking)
+	check_cost_center_access(doc.cost_center)
+	doc.status = "Completed"
+	doc.save()
+
+	return {
+		"status": doc.status,
+		"sales_invoice": doc.sales_invoice,
+		"pos_profile": get_pos_profile_for_cost_center(doc.cost_center),
+	}
 
 
 @frappe.whitelist()

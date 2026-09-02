@@ -1,6 +1,7 @@
 .salon-shell {
 	display: flex;
-	min-height: calc(100vh - 60px);
+	height: calc(100vh - 60px);
+	overflow: hidden;
 }
 .salon-sidebar {
 	width: 220px;
@@ -8,6 +9,7 @@
 	border-right: 1px solid #e5e5e5;
 	padding: 24px 16px;
 	flex-shrink: 0;
+	height: 100%;
 	overflow-y: auto;
 }
 .salon-brand {
@@ -61,8 +63,12 @@
 }
 .salon-main {
 	flex: 1;
+	min-width: 0;
+	height: 100%;
 	padding: 32px 40px;
 	background: #fafafa;
+	overflow-y: auto;
+	box-sizing: border-box;
 }
 .salon-header {
 	display: flex;
@@ -199,9 +205,8 @@
 .salon-cal-main {
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - 60px);
+	overflow: hidden;
 	padding: 24px 32px;
-	box-sizing: border-box;
 }
 .salon-cal-toolbar {
 	display: flex;

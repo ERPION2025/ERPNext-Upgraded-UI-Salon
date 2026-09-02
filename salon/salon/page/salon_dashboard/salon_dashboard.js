@@ -12,6 +12,8 @@ class SalonDashboard {
 	constructor(page) {
 		this.page = page;
 		this.body = page.body.get(0);
+		this.cost_center = null;
+		this.filter_rendered = false;
 		this.render_shell();
 		this.load_data();
 	}
@@ -22,10 +24,14 @@ class SalonDashboard {
 				${salon_common.render_sidebar_html('dashboard')}
 				<main class="salon-main">
 					<header class="salon-header">
-						<h1>Good morning, ${frappe.utils.escape_html(frappe.session.user_fullname)}</h1>
-						<p id="salon-date"></p>
+						<div>
+							<h1>Good morning, ${frappe.utils.escape_html(frappe.session.user_fullname)}</h1>
+							<p id="salon-date"></p>
+						</div>
+						<div class="salon-branch-filter" id="salon-branch-filter"></div>
 					</header>
 					<section class="salon-kpis" id="salon-kpis"></section>
+					<section class="salon-store-sales" id="salon-store-sales" hidden></section>
 					<section class="salon-schedule">
 						<div class="salon-schedule-head">
 							<h2>Today's schedule</h2>
@@ -41,17 +47,60 @@ class SalonDashboard {
 				</main>
 			</div>
 		`;
-		document.getElementById('salon-date').textContent = frappe.datetime.str_to_user(
+		this.body.querySelector('#salon-date').textContent = frappe.datetime.str_to_user(
 			frappe.datetime.now_date(),
 			true
 		);
+		this.$filter = this.body.querySelector('#salon-branch-filter');
 	}
 
 	load_data() {
-		frappe.call('salon.api.get_dashboard_kpis').then((r) => {
+		frappe.call({
+			method: 'salon.api.get_dashboard_kpis',
+			args: { cost_center: this.cost_center },
+		}).then((r) => {
 			const d = r.message || {};
+			this.is_admin = d.is_admin;
+			this.user_cost_center = d.user_cost_center;
+
+			if (!this.filter_rendered) {
+				this.render_filter();
+				this.filter_rendered = true;
+			}
+
 			this.render_kpis(d);
+			this.render_store_sales(d.store_sales || []);
 			this.render_schedule(d.schedule || []);
+		});
+	}
+
+	render_filter() {
+		if (!this.is_admin) {
+			// Cashiers / branch staff are locked to their own store — no
+			// picker, just show which store this data is scoped to.
+			this.$filter.innerHTML = `<span class="salon-branch-locked">${frappe.utils.escape_html(
+				this.user_cost_center || __('No store assigned')
+			)}</span>`;
+			return;
+		}
+
+		frappe.call({
+			method: 'frappe.client.get_list',
+			args: { doctype: 'Cost Center', fields: ['name'], limit_page_length: 0, order_by: 'name asc' },
+		}).then((r) => {
+			const opts = (r.message || [])
+				.map((c) => `<option value="${frappe.utils.escape_html(c.name)}">${frappe.utils.escape_html(c.name)}</option>`)
+				.join('');
+			this.$filter.innerHTML = `
+				<select class="form-control salon-branch-select">
+					<option value="">${__('All Branches')}</option>
+					${opts}
+				</select>
+			`;
+			this.$filter.querySelector('select').addEventListener('change', (e) => {
+				this.cost_center = e.target.value || null;
+				this.load_data();
+			});
 		});
 	}
 
@@ -60,8 +109,10 @@ class SalonDashboard {
 			{ label: "Today's bookings", value: d.today_bookings || 0 },
 			{ label: 'Revenue today', value: format_currency(d.revenue_today || 0) },
 			{ label: 'Commissions accrued', value: format_currency(d.commissions_today || 0) },
+			{ label: 'Active stylists', value: d.active_stylists || 0 },
+			{ label: 'Active POS sessions', value: d.active_pos || 0 },
 		];
-		document.getElementById('salon-kpis').innerHTML = cards
+		this.body.querySelector('#salon-kpis').innerHTML = cards
 			.map(
 				(c) => `
 			<div class="salon-card">
@@ -73,8 +124,36 @@ class SalonDashboard {
 			.join('');
 	}
 
+	render_store_sales(rows) {
+		const section = this.body.querySelector('#salon-store-sales');
+		if (!rows.length) {
+			section.hidden = true;
+			section.innerHTML = '';
+			return;
+		}
+		section.hidden = false;
+		section.innerHTML = `
+			<h2>Store-wise sales today</h2>
+			<table class="salon-table">
+				<thead><tr><th>Branch</th><th>Sales</th></tr></thead>
+				<tbody>
+					${rows
+						.map(
+							(r) => `
+						<tr>
+							<td>${frappe.utils.escape_html(r.cost_center)}</td>
+							<td>${format_currency(r.revenue || 0)}</td>
+						</tr>
+					`
+						)
+						.join('')}
+				</tbody>
+			</table>
+		`;
+	}
+
 	render_schedule(rows) {
-		const body = document.getElementById('salon-schedule-body');
+		const body = this.body.querySelector('#salon-schedule-body');
 		if (!rows.length) {
 			body.innerHTML = '<tr><td colspan="5">No bookings yet today.</td></tr>';
 			return;

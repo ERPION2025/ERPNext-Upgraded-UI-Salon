@@ -296,7 +296,7 @@ class SalonCalendar {
 				document.body.classList.remove('salon-cal-dragging');
 
 				if (!moved) {
-					this.open_booking_actions(booking);
+					frappe.set_route('Form', 'Salon Booking', booking.name);
 					return;
 				}
 
@@ -334,62 +334,6 @@ class SalonCalendar {
 		});
 	}
 
-	open_booking_actions(booking) {
-		if (this.LOCKED_STATUSES.includes(booking.status)) {
-			frappe.set_route('Form', 'Salon Booking', booking.name);
-			return;
-		}
-
-		const d = new frappe.ui.Dialog({
-			title: booking.customer || booking.name,
-			fields: [
-				{
-					fieldname: 'summary',
-					fieldtype: 'HTML',
-					options: `<p>${frappe.utils.escape_html(
-						this.format_time(booking.booking_datetime)
-					)} &middot; ${frappe.utils.escape_html(booking.salon_stylist || '')} &middot; ${frappe.utils.escape_html(
-						booking.status
-					)}</p>`,
-				},
-			],
-			primary_action_label: __('Complete & Bill'),
-			primary_action: () => {
-				frappe
-					.call({
-						method: 'salon.api.complete_and_bill',
-						args: { booking: booking.name },
-						freeze: true,
-					})
-					.then((r) => {
-						d.hide();
-						const msg = r.message || {};
-						if (!msg.pos_profile) {
-							frappe.show_alert({
-								message: __('Booking completed, but no POS Profile is set up for this branch yet.'),
-								indicator: 'orange',
-							});
-							this.load_data();
-							return;
-						}
-						frappe.show_alert({
-							message: __('Booking completed — opening POS to take payment'),
-							indicator: 'green',
-						});
-						frappe.set_route('point-of-sale');
-					})
-					.catch(() => {
-						this.load_data();
-					});
-			},
-			secondary_action_label: __('Open Full Record'),
-			secondary_action: () => {
-				d.hide();
-				frappe.set_route('Form', 'Salon Booking', booking.name);
-			},
-		});
-		d.show();
-	}
 
 	render_now_line() {
 		const today = frappe.datetime.get_today();

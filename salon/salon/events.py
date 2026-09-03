@@ -25,12 +25,24 @@ def on_sales_invoice_submit(doc, method=None):
 
 	# Requires a Salary Component named "Service Commission" - create it
 	# once under Payroll > Salary Component (native, no code).
+	#
+	# overwrite_salary_structure_amount MUST stay 0: "overwrite" means
+	# "this is the one true value for this component on this date",
+	# so Frappe HR blocks a second overwrite entry for the same
+	# employee/component/date outright (see
+	# Additional Salary.validate_duplicate_additional_salary). A stylist
+	# can complete several bookings a day, each billed separately, and
+	# each commission needs to stack on top of the others - which is
+	# exactly what a plain (non-overwrite) Additional Salary does; Frappe
+	# HR sums every submitted one for the employee/component within a
+	# payroll period when Payroll Entry runs.
 	asal = frappe.new_doc("Additional Salary")
 	asal.employee = stylist.employee
 	asal.salary_component = "Service Commission"
 	asal.amount = commission
 	asal.payroll_date = nowdate()
 	asal.company = doc.company
+	asal.overwrite_salary_structure_amount = 0
 	asal.insert(ignore_permissions=True)
 	asal.submit()
 

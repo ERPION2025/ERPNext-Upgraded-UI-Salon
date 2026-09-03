@@ -103,12 +103,14 @@
 	color: #4a4a4a;
 }
 .salon-store-sales {
-	margin-bottom: 32px;
+	margin: 0 0 40px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #eee;
 }
 .salon-store-sales h2 {
 	font-size: 16px;
 	font-weight: 500;
-	margin-bottom: 12px;
+	margin: 0 0 12px;
 	color: #1a1a1a;
 }
 .salon-kpis {
@@ -132,6 +134,9 @@
 	font-size: 12px;
 	color: #8a8a8a;
 	margin-top: 4px;
+}
+.salon-schedule {
+	margin-top: 8px;
 }
 .salon-schedule h2 {
 	font-size: 16px;
@@ -215,6 +220,7 @@
 	margin-bottom: 16px;
 	flex-wrap: wrap;
 	gap: 12px;
+	flex-shrink: 0;
 }
 .salon-cal-title h1 {
 	font-size: 20px;
@@ -252,6 +258,8 @@
 
 .salon-cal-grid-wrap {
 	flex: 1;
+	min-width: 0;
+	min-height: 0;
 	overflow: auto;
 	background: #fff;
 	border: 1px solid #eee;
@@ -262,6 +270,7 @@
 	display: flex;
 	flex-direction: column;
 	min-width: 100%;
+	width: fit-content;
 }
 .cal-header-row {
 	display: flex;

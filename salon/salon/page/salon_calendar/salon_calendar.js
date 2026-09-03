@@ -19,8 +19,11 @@ class SalonCalendar {
 		this.PX_PER_MIN = 1.6;
 		this.SNAP_MIN = 15;
 		this.LOCKED_STATUSES = ['Completed', 'Cancelled', 'No-Show'];
+		this.BOARD_STATUSES = ['Tentative', 'Confirmed', 'Checked In', 'Completed'];
 
 		this.scope_resolved = false;
+		this.view = 'grid';
+		this.stylist_map = {};
 
 		this.render_shell();
 		this.wire_toolbar();
@@ -39,9 +42,13 @@ class SalonCalendar {
 					<header class="salon-cal-toolbar">
 						<div class="salon-cal-title">
 							<h1>Booking Calendar</h1>
-							<p>Drag to reschedule &middot; click an empty slot to create a booking &middot; live conflict checking</p>
+							<p class="salon-cal-subtitle">Drag to reschedule &middot; click an empty slot to create a booking &middot; live conflict checking</p>
 						</div>
 						<div class="salon-cal-controls">
+							<div class="salon-cal-view-toggle">
+								<button class="btn btn-default btn-sm active" data-view="grid">${__('Grid')}</button>
+								<button class="btn btn-default btn-sm" data-view="board">${__('Board')}</button>
+							</div>
 							<button class="btn btn-default btn-sm" data-nav="prev">&larr;</button>
 							<input type="date" class="form-control salon-cal-date" />
 							<button class="btn btn-default btn-sm" data-nav="today">Today</button>
@@ -65,6 +72,7 @@ class SalonCalendar {
 							</div>
 						</div>
 					</div>
+					<div class="cal-board" style="display:none"></div>
 				</main>
 			</div>
 		`;
@@ -75,11 +83,18 @@ class SalonCalendar {
 		this.$columns_header = this.body.querySelector('.cal-columns-header');
 		this.$columns_body = this.body.querySelector('.cal-columns-body');
 		this.$now_line = this.body.querySelector('.cal-now-line');
+		this.$grid_wrap = this.body.querySelector('.salon-cal-grid-wrap');
+		this.$board = this.body.querySelector('.cal-board');
+		this.$subtitle = this.body.querySelector('.salon-cal-subtitle');
 
 		this.$date_input.value = this.date;
 	}
 
 	wire_toolbar() {
+		this.body.querySelectorAll('[data-view]').forEach((btn) => {
+			btn.addEventListener('click', () => this.set_view(btn.dataset.view));
+		});
+
 		this.$date_input.addEventListener('change', () => {
 			this.date = this.$date_input.value;
 			this.load_data();
@@ -149,6 +164,10 @@ class SalonCalendar {
 			const msg = r.message || {};
 			this.stylists = msg.stylists || [];
 			this.bookings = msg.bookings || [];
+			this.stylist_map = {};
+			this.stylists.forEach((s) => {
+				this.stylist_map[s.name] = s.stylist_name || s.name;
+			});
 
 			if (!this.scope_resolved) {
 				this.scope_resolved = true;
@@ -161,7 +180,26 @@ class SalonCalendar {
 			this.render_columns();
 			this.render_bookings();
 			this.render_now_line();
+			if (this.view === 'board') {
+				this.render_board();
+			}
 		});
+	}
+
+	set_view(view) {
+		this.view = view;
+		this.body.querySelectorAll('[data-view]').forEach((btn) => {
+			btn.classList.toggle('active', btn.dataset.view === view);
+		});
+		this.$grid_wrap.style.display = view === 'grid' ? '' : 'none';
+		this.$board.style.display = view === 'board' ? '' : 'none';
+		this.$subtitle.textContent =
+			view === 'grid'
+				? __('Drag to reschedule · click an empty slot to create a booking · live conflict checking')
+				: __('Drag a card to a new column to update its status · dropping into Completed bills it to POS');
+		if (view === 'board') {
+			this.render_board();
+		}
 	}
 
 	render_time_labels() {
@@ -350,6 +388,121 @@ class SalonCalendar {
 		}
 		this.$now_line.style.display = 'block';
 		this.$now_line.style.top = minutes * this.PX_PER_MIN + 'px';
+	}
+
+	render_board() {
+		this.$board.innerHTML = this.BOARD_STATUSES.map(
+			(status) => `
+			<div class="cal-board-col">
+				<div class="cal-board-col-header">
+					<span>${__(status)}</span>
+					<span class="cal-board-count" data-count="${status}">0</span>
+				</div>
+				<div class="cal-board-col-body" data-status="${status}"></div>
+			</div>
+		`
+		).join('');
+
+		const counts = {};
+		this.bookings.forEach((b) => {
+			const col = this.$board.querySelector(`.cal-board-col-body[data-status="${CSS.escape(b.status)}"]`);
+			if (!col) return; // No-Show / Cancelled aren't columns on the board
+			counts[b.status] = (counts[b.status] || 0) + 1;
+			col.appendChild(this.build_board_card(b));
+		});
+		Object.keys(counts).forEach((status) => {
+			const badge = this.$board.querySelector(`.cal-board-count[data-count="${CSS.escape(status)}"]`);
+			if (badge) badge.textContent = counts[status];
+		});
+
+		this.$board.querySelectorAll('.cal-board-col-body').forEach((col) => {
+			col.addEventListener('dragover', (e) => {
+				e.preventDefault();
+				e.dataTransfer.dropEffect = 'move';
+				col.classList.add('drag-over');
+			});
+			col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+			col.addEventListener('drop', (e) => {
+				e.preventDefault();
+				col.classList.remove('drag-over');
+				const booking_name = e.dataTransfer.getData('text/plain');
+				const new_status = col.dataset.status;
+				const booking = this.bookings.find((b) => b.name === booking_name);
+				if (!booking || booking.status === new_status) return;
+				this.update_booking_status(booking_name, new_status);
+			});
+		});
+	}
+
+	build_board_card(b) {
+		const locked = this.LOCKED_STATUSES.includes(b.status);
+		const status_class = (b.status || '').toLowerCase().replace(/\s+/g, '-');
+		const stylist_label = this.stylist_map[b.salon_stylist] || b.salon_stylist || '';
+		const services = b.services || [];
+		const service_html = services
+			.map(
+				(s) =>
+					`<span class="cal-booking-item" title="${frappe.utils.escape_html(
+						s.item_name || s.item
+					)}">${frappe.utils.escape_html(s.item)}</span>`
+			)
+			.join(', ');
+
+		const el = document.createElement('div');
+		el.className = `cal-board-card status-${status_class}${locked ? ' locked' : ''}`;
+		el.draggable = !locked;
+		el.innerHTML = `
+			<div class="cal-booking-time">${this.format_time(b.booking_datetime)}</div>
+			<div class="cal-booking-client">${frappe.utils.escape_html(b.customer || '')}</div>
+			<div class="cal-board-card-stylist">${frappe.utils.escape_html(stylist_label)}</div>
+			<div class="cal-booking-service">${service_html}</div>
+		`;
+		el.addEventListener('click', () => {
+			frappe.set_route('Form', 'Salon Booking', b.name);
+		});
+		if (!locked) {
+			el.addEventListener('dragstart', (e) => {
+				e.dataTransfer.setData('text/plain', b.name);
+				e.dataTransfer.effectAllowed = 'move';
+				el.classList.add('dragging');
+			});
+			el.addEventListener('dragend', () => el.classList.remove('dragging'));
+		}
+		return el;
+	}
+
+	update_booking_status(booking_name, new_status) {
+		const is_completing = new_status === 'Completed';
+		const call = is_completing
+			? { method: 'salon.api.complete_and_bill', args: { booking: booking_name } }
+			: { method: 'salon.api.update_booking_status', args: { booking: booking_name, status: new_status } };
+
+		frappe
+			.call(Object.assign({ freeze: true }, call))
+			.then((r) => {
+				const msg = r.message || {};
+				if (is_completing) {
+					if (msg.sales_invoice) {
+						frappe.show_alert({
+							message: __('Booking completed — draft invoice {0} created', [msg.sales_invoice]),
+							indicator: 'green',
+						});
+					} else {
+						frappe.show_alert({
+							message: __(
+								'Booking completed, but no draft invoice was created — set up a POS Profile for this branch'
+							),
+							indicator: 'orange',
+						});
+					}
+				} else {
+					frappe.show_alert({ message: __('Status updated'), indicator: 'green' });
+				}
+				this.load_data();
+			})
+			.catch(() => {
+				this.load_data();
+			});
 	}
 
 	open_quick_dialog(prefill) {

@@ -133,6 +133,21 @@ def complete_and_bill(booking):
 
 
 @frappe.whitelist()
+def update_booking_status(booking, status):
+	"""Generic status setter for the Calendar's board view (dragging a
+	card between the Tentative/Confirmed/Checked In columns). Completed
+	specifically goes through complete_and_bill instead, since that also
+	resolves the POS Profile for the caller - but even called directly,
+	Salon Booking.on_update() would still create the draft invoice the
+	same way, since that's keyed off the status value, not the caller."""
+	doc = frappe.get_doc("Salon Booking", booking)
+	check_cost_center_access(doc.cost_center)
+	doc.status = status
+	doc.save()
+	return {"status": doc.status, "sales_invoice": doc.sales_invoice}
+
+
+@frappe.whitelist()
 def get_calendar_data(start, end, cost_center=None):
 	scope = get_user_scope()
 	cost_center = resolve_cost_center_filter(cost_center)

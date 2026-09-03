@@ -247,6 +247,24 @@
 .salon-cal-branch {
 	width: 150px;
 }
+.salon-cal-view-toggle {
+	display: flex;
+	border: 1px solid #e5e5e5;
+	border-radius: 6px;
+	overflow: hidden;
+	margin-right: 4px;
+}
+.salon-cal-view-toggle .btn {
+	border: none;
+	border-radius: 0;
+	background: #fff;
+	color: #4a4a4a;
+}
+.salon-cal-view-toggle .btn.active {
+	background: #fdeaee;
+	color: #e4002b;
+	font-weight: 500;
+}
 .salon-cal-new {
 	background: #e4002b;
 	border-color: #e4002b;
@@ -463,4 +481,87 @@
 
 body.salon-cal-dragging {
 	user-select: none;
+}
+
+/* Booking Calendar - status board */
+.cal-board {
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	display: flex;
+	gap: 14px;
+}
+.cal-board-col {
+	flex: 1 1 240px;
+	min-width: 220px;
+	display: flex;
+	flex-direction: column;
+	background: #f0f0f0;
+	border-radius: 10px;
+	max-height: 100%;
+}
+.cal-board-col-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #4a4a4a;
+	flex-shrink: 0;
+}
+.cal-board-count {
+	background: #fff;
+	border-radius: 10px;
+	padding: 1px 8px;
+	font-size: 11px;
+	color: #8a8a8a;
+}
+.cal-board-col-body {
+	flex: 1;
+	min-height: 100px;
+	overflow-y: auto;
+	padding: 0 10px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.cal-board-col-body.drag-over {
+	background: #fdeaee;
+	outline: 2px dashed #e4002b;
+	outline-offset: -4px;
+	border-radius: 8px;
+}
+.cal-board-card {
+	background: #fff;
+	border-radius: 8px;
+	padding: 10px 12px;
+	border-left: 3px solid;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+	cursor: grab;
+}
+.cal-board-card.dragging {
+	opacity: 0.4;
+}
+.cal-board-card.locked {
+	cursor: pointer;
+}
+.cal-board-card-stylist {
+	font-size: 11px;
+	color: #757575;
+	margin: 2px 0;
+}
+.cal-board-card.status-tentative {
+	border-left-color: #b3b3b3;
+}
+.cal-board-card.status-confirmed {
+	border-left-color: #e4002b;
+}
+.cal-board-card.status-checked-in {
+	border-left-color: #2e7d32;
+}
+.cal-board-card.status-completed {
+	border-left-color: #1a1a1a;
+	background: #f7f7f7;
 }
